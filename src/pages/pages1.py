@@ -1,12 +1,33 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import Dash, html, Output, Input, dcc, State, callback
+import dash_ag_grid as dag
 import plotly.express as px
 import pandas as pd
 import base64
 import io
 
 dash.register_page(__name__, path='/', name='Overdue', order=1)
+
+def ag_grid(data):
+  # make ag_grid table from df_group_day
+  df_pivot = data.pivot(index='Over Due Days', columns='As of', values='Sum of Outstanding').reset_index()
+  df_pivot.fillna(0, inplace=True)
+  df_pivot['variance'] = df_pivot[df_pivot.columns[2]] - df_pivot[df_pivot.columns[1]]
+  df_pivot['% change'] = (df_pivot[df_pivot.columns[3]] / df_pivot[df_pivot.columns[2]]) * 100
+  df_pivot.loc['total'] = df_pivot.iloc[:].sum()[1:]
+  df_pivot['Over Due Days'].fillna('Total', inplace=True)
+  df_pivot.rename(columns={
+      'Aging Sort':'Over Due Days',
+  }, inplace=True)
+  return df_pivot
+
+def title_date(data):
+  # date tilte in visualize
+  title_date = data['As of'].iloc[-1]
+  year, month, date = title_date.split('-')
+  return year, month, date
+
 
 layout = html.Div([
 	dcc.Upload(
@@ -50,12 +71,59 @@ def update_output(contents, filename, date, children):
                 if 'xlsx' in filename[i]:
                     # Assume that the user uploaded an excel file
                     df = pd.read_excel(io.BytesIO(decoded))
-                    print(df)
+                    # data prep
+                    df['As of'] = df['As of'].astype('str')
+                    df_group_day = df.groupby(['As of', 'Aging Sort'])[['Sum of Outstanding']].sum().reset_index()
+                    df_group_day.rename(columns={
+                                        'Aging Sort': 'Over Due Days',
+                                        }, inplace=True)
+                    # plotly graph
+                    fig = px.line(df_group_day, \
+                    x='Over Due Days', y='Sum of Outstanding', \
+                    color='As of', \
+                    text='Sum of Outstanding', \
+                    title=f'Outstanding Report as of {title_date(df)[2]} - {title_date(df)[1]} - {title_date(df)[0]}')
+                    fig.update_traces(textposition="bottom right", texttemplate='%{text:.2s}')
+
+                # creating dashboard after upload data
+                children.append(dbc.Container([
+                    html.Br(),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Loading(children=[dcc.Graph(figure=fig)])
+                            ])
+                        ]),
+                    dbc.Row([
+                        dbc.Col([
+                            dcc.Loading(children=[
+                                dag.AgGrid(
+                                    rowData = ag_grid(df_group_day).to_dict('records'),
+                                    columnDefs = [
+                                        {'field': 'Over Due Days', 'width': 150},
+                                        {'field': '2023-07-14', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
+                                        {'field': '2023-07-21', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
+                                        {'field': 'variance', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
+                                        {'field': '% change', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value) + "%"'}},
+                                        ],
+                                    defaultColDef={"resizable": True, "sortable": True, "filter": True},
+                                    columnSize="responsiveSizeToFit",
+                                    dashGridOptions={"pagination": True, "paginationPageSize":6, "domLayout": "autoHeight"},
+                                    )
+                                ])
+                            ])
+                        ])
+                    ])
+                )
+
+                return children
+
             except Exception as e:
                 print(e)
                 return html.Div([
                     'There was an error processing this file.'
                 ])
+    else:
+        return ""
 
     
     
