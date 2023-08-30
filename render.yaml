@@ -1,7 +1,7 @@
 services:
   # See https://render.com/docs/blueprint-spec for more info on render blueprints
   - type: web
-    name: action-plug-relish-5ybu
+    name: ar-dashboard-as-a-report
     region: singapore
     env: python
     plan: free
