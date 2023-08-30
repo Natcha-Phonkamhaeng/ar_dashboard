@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 from dash import Dash, html, Output, Input, dcc
 
 app = dash.Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.SPACELAB, dbc.icons.BOOTSTRAP])
-
+server = app.server
 
 magenta = '#db0f72'
 
