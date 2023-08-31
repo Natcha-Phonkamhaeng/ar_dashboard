@@ -86,7 +86,8 @@ def update_output(contents, filename, date, children):
                     fig.update_traces(textposition="bottom right", texttemplate='%{text:.2s}')
 
                 # creating dashboard after upload data
-                children.append(dbc.Container([
+                dcc.Loading(children=[
+                    children.append(dbc.Container([
                     html.Br(),
                     dbc.Row([
                         dbc.Col([
@@ -100,8 +101,8 @@ def update_output(contents, filename, date, children):
                                     rowData = ag_grid(df_group_day).to_dict('records'),
                                     columnDefs = [
                                         {'field': 'Over Due Days', 'width': 150},
-                                        {'field': '2023-07-14', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
-                                        {'field': '2023-07-21', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
+                                        {'field': ag_grid(df_group_day).columns[1], 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
+                                        {'field': ag_grid(df_group_day).columns[2], 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
                                         {'field': 'variance', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value)'}},
                                         {'field': '% change', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value) + "%"'}},
                                         ],
@@ -114,6 +115,7 @@ def update_output(contents, filename, date, children):
                         ])
                     ])
                 )
+            ])
 
                 return children
 
