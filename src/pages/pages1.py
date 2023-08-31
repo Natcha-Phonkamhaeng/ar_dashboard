@@ -14,7 +14,7 @@ def ag_grid(data):
   df_pivot = data.pivot(index='Over Due Days', columns='As of', values='Sum of Outstanding').reset_index()
   df_pivot.fillna(0, inplace=True)
   df_pivot['variance'] = df_pivot[df_pivot.columns[2]] - df_pivot[df_pivot.columns[1]]
-  df_pivot['% change'] = (df_pivot[df_pivot.columns[3]] / df_pivot[df_pivot.columns[2]]) * 100
+  df_pivot['% change'] = (df_pivot[df_pivot.columns[3]] / df_pivot[df_pivot.columns[1]]) * 100
   df_pivot.loc['total'] = df_pivot.iloc[:].sum()[1:]
   df_pivot['Over Due Days'].fillna('Total', inplace=True)
   df_pivot.rename(columns={
