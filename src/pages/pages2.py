@@ -106,8 +106,14 @@ def update_output(contents, filename, date, children):
 								id={'type': 'dynamic-table'},
 					            rowData = df_root.to_dict('records'),
 					            columnDefs = [
-					                {'field': 'Customer Name', 'width': 150},
-					                {'field': 'Sum of Outstanding', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}},
+					                {'field': 'Customer Name', 
+					                	'width': 150
+					                },
+					                {'field': 'Sum of Outstanding', 
+					                	'width': 150, 'type': 
+					                	'rightAligned', 
+					                	"valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}
+					                },
 					                ],
 					            defaultColDef={"resizable": True, "sortable": True, "filter": True},
 					            columnSize="responsiveSizeToFit",

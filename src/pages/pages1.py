@@ -18,9 +18,10 @@ def ag_grid(data):
   df_pivot.rename(columns={
       'Aging Sort':'Over Due Days',
   }, inplace=True)
-
-  df_pivot['variance'] = df_pivot[df_pivot.columns[2]] - df_pivot[df_pivot.columns[1]]
-  df_pivot['% change'] = df_pivot[df_pivot.columns[3]] / df_pivot[df_pivot.columns[1]]
+  # below code is replaced by Dash Ag Grid
+  # df_pivot['variance'] = df_pivot[df_pivot.columns[2]] - df_pivot[df_pivot.columns[1]]
+  # df_pivot['% change'] = np.nan
+  # df_pivot['% change'] = df_pivot[df_pivot.columns[3]] / df_pivot[df_pivot.columns[1]]
   
   return df_pivot
 
@@ -102,12 +103,35 @@ def update_output(contents, filename, date, children):
                                 dag.AgGrid(
                                     rowData = ag_grid(df_group_day).to_dict('records'),
                                     columnDefs = [
-                                        {'field': 'Over Due Days', 'width': 150},
-                                        {'field': ag_grid(df_group_day).columns[1], 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}},
-                                        {'field': ag_grid(df_group_day).columns[2], 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}},
-                                        {'field': 'variance', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}},
+                                        {'field': 'Over Due Days',
+                                            'width': 150
+                                        },
+                                        {'field': ag_grid(df_group_day).columns[1],
+                                            "colId": "first_col", 
+                                            'width': 150, 
+                                            'type': 'rightAligned', 
+                                            "valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}
+                                        },
+                                        {'field': ag_grid(df_group_day).columns[2],
+                                            "colId": "second_col", 
+                                            'width': 150, 
+                                            'type': 'rightAligned', 
+                                            "valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}
+                                        },
+                                        {'field': 'variance',
+                                            "colId": "variance_col",
+                                            "valueGetter": {"function": "params.getValue('second_col') - params.getValue('first_col');"},
+                                            'width': 150, 
+                                            'type': 'rightAligned', 
+                                            "valueFormatter": {"function": 'd3.format("(,.0f")(params.value)'}
+                                        },
                                         # {'field': '% change', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format("(,.2f")(params.value) + "%"'}},
-                                        {'field': '% change', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format(".0%")(params.value)'}},
+                                        # {'field': '% change', 'width': 150, 'type': 'rightAligned', "valueFormatter": {"function": 'd3.format(".0%")(params.value)'}},
+                                        {'field': '% change',
+                                            "valueGetter": {"function": "params.getValue('variance_col') / params.getValue('first_col');"},
+                                            'width': 150, 'type': 'rightAligned',
+                                            "valueFormatter": {"function": 'd3.format(".0%")(params.value)'}
+                                        },
                                         ],
                                     defaultColDef={"resizable": True, "sortable": True, "filter": True},
                                     columnSize="responsiveSizeToFit",
